@@ -1,0 +1,70 @@
+"use strict";
+function neighbors(cell) {
+    var neighborArray = [];
+    const cellTuple = cell.split(' ').map(number => parseInt(number));
+    
+    for(let rowShift of [-1, 0, 1]) {
+        for(let colShift of [-1, 0, 1]) {
+            if(!(rowShift === 0 && colShift === 0)) {
+                neighborArray.push([cellTuple[0]+rowShift, cellTuple[1]+colShift]);
+            }
+        }
+    }
+    
+    return neighborArray.map(tuple => tuple.join(' '));
+}
+
+function livingNeighbors(cell, livingCells) {
+    var total = 0;
+    const neighborArray = neighbors(cell);
+    
+    neighborArray.forEach(neighbor => total += livingCells.has(neighbor) ? 1 : 0);
+    
+    return total;
+}
+
+function convertState(state) {
+    var newState = new Set;
+    
+    for(let row = 0; row < state.length; row++) {
+        for(let col = 0; col < state[0].length; col++) {
+            if(state[row][col]) {
+                newState.add(row + ' ' + col)
+            }
+        }
+    }
+    
+    return newState;
+}
+
+function updateState(startState) {
+    var nextState = new Set;
+    
+    startState.forEach(cell => {
+        let neighborArray = neighbors(cell);
+        
+        neighborArray.forEach(neighbor => {
+            if(startState.has(neighbor)) {
+                if(1 < livingNeighbors(neighbor, startState) && 4 > livingNeighbors(neighbor, startState)) {
+                    nextState.add(neighbor);
+                }
+            } else if(livingNeighbors(neighbor, startState) === 3) {
+                nextState.add(neighbor);
+            }
+        })
+    })
+    
+    return nextState
+}
+
+function countLivingCells(startState, stepsRemaining) {
+    if(stepsRemaining === 0) {
+        return startState.size;
+    } else {
+        return countLivingCells(updateState(startState), stepsRemaining - 1);
+    }
+}
+
+function lifeCounter(cells, stepsRemaining) {
+    return countLivingCells(convertState(cells), stepsRemaining);
+}
